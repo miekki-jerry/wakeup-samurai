@@ -46,3 +46,52 @@ import Testing
 
     #expect(agents.isEmpty)
 }
+
+@Test func detectsAdditionalCodexBarProviders() {
+    let output = """
+      401 /Users/me/.local/bin/kimi kimi
+      402 /opt/homebrew/bin/gemini gemini --prompt hello
+      403 /Users/me/.local/bin/agy agy
+      404 /usr/local/bin/auggie auggie
+      405 /opt/homebrew/bin/kiro-cli kiro-cli chat --no-interactive /usage
+      406 /Applications/Zed.app/Contents/MacOS/zed zed .
+      407 /Applications/Cursor.app/Contents/MacOS/Cursor Cursor
+    """
+
+    let agents = ProcessSnapshotParser.detectedAgents(from: output, currentProcessID: 999)
+
+    #expect(agents.map { $0.provider } == [
+        .kimi,
+        .gemini,
+        .antigravity,
+        .augment,
+        .kiro,
+        .zed,
+        .cursor,
+    ])
+}
+
+@Test func detectsKimiCodeAppProcess() {
+    let output = """
+      410 Kimi Code Kimi Code
+    """
+
+    let agents = ProcessSnapshotParser.detectedAgents(from: output, currentProcessID: 999)
+
+    #expect(agents == [
+        DetectedAgent(id: 410, provider: .kimi, command: "Kimi", arguments: "Code Kimi Code")
+    ])
+}
+
+@Test func matchesProviderTermsOnTokenBoundaries() {
+    let output = """
+      501 /usr/bin/node node optimized-renderer.js
+      502 /usr/bin/python python poetry-helper.py
+      503 /usr/bin/python python ampere-report.py
+      504 /Applications/Zed.app/Contents/MacOS/zed zed .
+    """
+
+    let agents = ProcessSnapshotParser.detectedAgents(from: output, currentProcessID: 999)
+
+    #expect(agents.map { $0.provider } == [.zed])
+}

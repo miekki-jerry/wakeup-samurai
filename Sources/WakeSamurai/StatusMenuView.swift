@@ -110,12 +110,14 @@ struct StatusMenuView: View {
                 .tracking(4)
                 .foregroundStyle(.white.opacity(0.45))
 
-            HStack(spacing: 10) {
-                ForEach(AgentProvider.allCases, id: \.self) { provider in
-                    AgentChip(
-                        title: provider == .claude ? "Claude Code" : provider.displayName,
-                        isActive: model.detectedAgents.contains { $0.provider == provider }
-                    )
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(AgentProvider.allCases, id: \.self) { provider in
+                        AgentChip(
+                            title: provider == .claude ? "Claude Code" : provider.displayName,
+                            isActive: model.detectedAgents.contains { $0.provider == provider }
+                        )
+                    }
                 }
             }
         }

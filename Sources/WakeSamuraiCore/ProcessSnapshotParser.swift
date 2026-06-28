@@ -21,15 +21,44 @@ public enum ProcessSnapshotParser {
         let arguments = parts.count == 3 ? String(parts[2]) : ""
         let searchable = "\(command) \(arguments)".lowercased()
 
-        guard let provider = AgentProvider.allCases.first(where: { provider in
-            provider.matchTerms.contains(where: { term in
-                searchable.contains(term)
-            })
-        }) else {
+        guard let provider = matchedProvider(in: searchable) else {
             return nil
         }
 
         return DetectedAgent(id: pid, provider: provider, command: lastPathComponent(command), arguments: arguments)
+    }
+
+    private static func matchedProvider(in searchable: String) -> AgentProvider? {
+        AgentProvider.allCases
+            .flatMap { provider in
+                provider.matchTerms.map { (provider: provider, term: $0) }
+            }
+            .sorted { $0.term.count > $1.term.count }
+            .first { containsMatchTerm(searchable, term: $0.term) }?
+            .provider
+    }
+
+    private static func containsMatchTerm(_ searchable: String, term: String) -> Bool {
+        guard !term.isEmpty else { return false }
+
+        var searchStart = searchable.startIndex
+        while let range = searchable.range(of: term, range: searchStart..<searchable.endIndex) {
+            let before = range.lowerBound == searchable.startIndex ? nil : searchable[searchable.index(before: range.lowerBound)]
+            let after = range.upperBound == searchable.endIndex ? nil : searchable[range.upperBound]
+
+            if isTermBoundary(before) && isTermBoundary(after) {
+                return true
+            }
+
+            searchStart = range.upperBound
+        }
+
+        return false
+    }
+
+    private static func isTermBoundary(_ character: Character?) -> Bool {
+        guard let character else { return true }
+        return !character.isLetter && !character.isNumber
     }
 
     private static func lastPathComponent(_ command: String) -> String {

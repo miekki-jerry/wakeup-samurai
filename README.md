@@ -4,7 +4,7 @@ Wake Samurai is a small open-source macOS menu bar app that keeps your Mac awake
 
 > Wake the f*ck up, Samurai. Your agent is still working.
 
-The first version watches for Codex and Claude processes. When one is detected, Wake Samurai creates a macOS idle-sleep assertion. When no supported agent is running, the assertion is released.
+Wake Samurai watches for supported AI coding provider processes. When one is detected, Wake Samurai creates a macOS idle-sleep assertion. When no supported agent is running, the assertion is released.
 
 ## Why
 
@@ -13,7 +13,7 @@ Long-running coding agents can stop when macOS goes to sleep. Wake Samurai gives
 ## Features
 
 - Native macOS menu bar app
-- Detects Codex and Claude processes
+- Detects supported AI coding provider processes
 - Prevents idle sleep only while an agent is running
 - Manual pause toggle
 - Launch at login checkbox
@@ -95,10 +95,11 @@ Regenerate the app icon:
 
 ## Detection Model
 
-Wake Samurai intentionally starts simple. It scans the local process table and matches supported provider names:
+Wake Samurai intentionally starts simple. It scans the local process table and matches supported provider names on token boundaries to avoid accidental substring hits.
 
-- Codex: `codex`
-- Claude: `claude`, `claude-code`
+Supported providers currently follow the CodexBar provider set:
+
+- Codex, Claude, Cursor, OpenCode, Alibaba, Alibaba Token, Gemini, Antigravity, Droid, Copilot, Devin, z.ai, MiniMax, Kimi, Kimi K2, Kilo, Kiro, Vertex AI, Augment, Amp, Ollama, Synthetic, JetBrains AI, Warp, ElevenLabs, OpenRouter, LiteLLM, Perplexity, Abacus AI, Mistral, DeepSeek, T3 Chat, Codebuff, Poe, Chutes, and Zed.
 
 The scanner ignores Wake Samurai's own process. Future providers should be added in `Sources/WakeSamuraiCore/AgentProvider.swift` with focused tests.
 
