@@ -19,27 +19,42 @@ public enum ProcessSnapshotParser {
 
         let command = String(parts[1])
         let arguments = parts.count == 3 ? String(parts[2]) : ""
-        let searchable = "\(command) \(arguments)".lowercased()
-
-        guard let provider = matchedProvider(command: command, arguments: arguments, searchable: searchable) else {
+        guard let provider = matchedProvider(command: command, arguments: arguments) else {
             return nil
         }
 
         return DetectedAgent(id: pid, provider: provider, command: lastPathComponent(command), arguments: arguments)
     }
 
-    private static func matchedProvider(command: String, arguments: String, searchable: String) -> AgentProvider? {
+    private static func matchedProvider(command: String, arguments: String) -> AgentProvider? {
         if isJetBrainsAppProcess(command: command, arguments: arguments) {
             return .jetBrainsAI
         }
 
-        return AgentProvider.allCases
+        if let provider = matchedProvider(in: command) {
+            return provider
+        }
+
+        guard !ignoresArguments(for: command) else {
+            return nil
+        }
+
+        let argumentSearchable = executableArgumentSearchable(command: command, arguments: arguments)
+        guard !argumentSearchable.isEmpty else {
+            return nil
+        }
+
+        return matchedProvider(in: argumentSearchable)
+    }
+
+    private static func matchedProvider(in searchable: String) -> AgentProvider? {
+        AgentProvider.allCases
             .filter { $0 != .jetBrainsAI }
             .flatMap { provider in
                 provider.matchTerms.map { (provider: provider, term: $0) }
             }
             .sorted { $0.term.count > $1.term.count }
-            .first { containsMatchTerm(searchable, term: $0.term) }?
+            .first { containsMatchTerm(searchable.lowercased(), term: $0.term) }?
             .provider
     }
 
@@ -62,6 +77,65 @@ public enum ProcessSnapshotParser {
         ]
 
         return appBundlePaths.contains { searchable.contains($0) }
+    }
+
+    private static func ignoresArguments(for command: String) -> Bool {
+        let processName = lastPathComponent(command).lowercased()
+        let ignoredProcessNames: Set<String> = [
+            "awk",
+            "bash",
+            "cat",
+            "egrep",
+            "fgrep",
+            "find",
+            "fish",
+            "git",
+            "grep",
+            "head",
+            "less",
+            "login",
+            "mdfind",
+            "osascript",
+            "ps",
+            "rg",
+            "sed",
+            "sh",
+            "tail",
+            "tee",
+            "tmux",
+            "xargs",
+            "zsh",
+        ]
+
+        return ignoredProcessNames.contains(processName)
+    }
+
+    private static func executableArgumentSearchable(command: String, arguments: String) -> String {
+        let processName = lastPathComponent(command).lowercased()
+        let tokens = arguments.split(whereSeparator: { $0.isWhitespace }).map(String.init)
+        guard !tokens.isEmpty else { return "" }
+
+        let wrapperProcessNames: Set<String> = [
+            "bun",
+            "deno",
+            "node",
+            "npm",
+            "npx",
+            "pnpm",
+            "python",
+            "python3",
+            "uv",
+            "uvx",
+        ]
+
+        if wrapperProcessNames.contains(processName) {
+            return tokens
+                .prefix(8)
+                .filter { !$0.hasPrefix("-") }
+                .joined(separator: " ")
+        }
+
+        return tokens[0]
     }
 
     private static func containsMatchTerm(_ searchable: String, term: String) -> Bool {

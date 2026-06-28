@@ -117,6 +117,31 @@ import Testing
     #expect(agents.isEmpty)
 }
 
+@Test func ignoresProviderTermsInInspectorProcesses() {
+    let terms = AgentProvider.allCases.flatMap(\.matchTerms).joined(separator: " ")
+    let output = """
+      620 /bin/zsh /bin/zsh -lc echo '\(terms)'
+      621 /opt/homebrew/bin/rg rg -i '\(terms)'
+      622 /usr/bin/grep grep -i '\(terms)'
+      623 /bin/ps ps ax -o pid=,comm=,args= \(terms)
+      624 /usr/bin/git git commit -m '\(terms)'
+    """
+
+    let agents = ProcessSnapshotParser.detectedAgents(from: output, currentProcessID: 999)
+
+    #expect(agents.isEmpty)
+}
+
+@Test func detectsAgentCliLaunchedThroughNodeWrapper() {
+    let output = """
+      630 /opt/homebrew/bin/node node /opt/homebrew/bin/codex --ask-for-approval never
+    """
+
+    let agents = ProcessSnapshotParser.detectedAgents(from: output, currentProcessID: 999)
+
+    #expect(agents.first?.provider == .codex)
+}
+
 @Test func detectsJetBrainsAppsFromAppBundlePaths() {
     let output = """
       701 /Applications/Aqua.app/Contents/MacOS/aqua /Applications/Aqua.app/Contents/MacOS/aqua
