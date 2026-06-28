@@ -34,9 +34,7 @@ struct StatusMenuView: View {
             CyberGrid()
 
             VStack(alignment: .leading, spacing: 0) {
-                header
-                Divider().overlay(Color.white.opacity(0.08))
-                statusRows
+                statusRow
                 Divider().overlay(Color.white.opacity(0.08))
                 controls
                 Divider().overlay(Color.white.opacity(0.08))
@@ -45,7 +43,7 @@ struct StatusMenuView: View {
             .padding(.horizontal, 18)
             .padding(.vertical, 16)
         }
-        .frame(width: 430, height: 320)
+        .frame(width: 390, height: 250)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(Color(red: 0.04, green: 0.045, blue: 0.045).opacity(0.98))
@@ -56,23 +54,32 @@ struct StatusMenuView: View {
         )
     }
 
-    private var header: some View {
-        HStack(spacing: 10) {
-            Image(nsImage: AppIconAsset.statusBarImage())
-                .resizable()
-                .frame(width: 18, height: 18)
-                .foregroundStyle(.white)
-                .accessibilityHidden(true)
+    private var statusRow: some View {
+        HStack(spacing: 12) {
+            Circle()
+                .fill(model.detectedAgents.isEmpty ? Color.secondary.opacity(0.45) : CyberColor.yellow.opacity(0.65))
+                .frame(width: 10, height: 10)
 
-            Text("Wake Samurai")
-                .font(.system(size: 15, weight: .semibold, design: .monospaced))
-                .foregroundStyle(.white.opacity(0.9))
+            Text(statusText)
+                .font(.system(size: 19, weight: .semibold, design: .monospaced))
+                .foregroundStyle(.white.opacity(0.92))
+                .lineLimit(1)
 
             Spacer()
 
-            Label(model.isKeepingAwake ? "awake" : "watching", systemImage: "cup.and.saucer")
-                .font(.system(size: 13, weight: .medium, design: .monospaced))
+            Text(badgeText)
+                .font(.system(size: 14, weight: .semibold, design: .monospaced))
                 .foregroundStyle(model.isKeepingAwake ? CyberColor.yellow : .secondary)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(
+                    RoundedRectangle(cornerRadius: 5, style: .continuous)
+                        .fill((model.isKeepingAwake ? CyberColor.yellow : Color.secondary).opacity(0.08))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 5, style: .continuous)
+                        .stroke((model.isKeepingAwake ? CyberColor.yellow : Color.secondary).opacity(0.5), lineWidth: 1)
+                )
 
             Button {
                 NSApplication.shared.terminate(nil)
@@ -86,49 +93,7 @@ struct StatusMenuView: View {
             .help("Quit Wake Samurai")
             .keyboardShortcut("q")
         }
-        .padding(.bottom, 14)
-    }
-
-    private var statusRows: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            HStack(spacing: 12) {
-                Circle()
-                    .fill(model.detectedAgents.isEmpty ? Color.secondary.opacity(0.45) : CyberColor.yellow.opacity(0.65))
-                    .frame(width: 10, height: 10)
-
-                Text(statusText)
-                    .font(.system(size: 19, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(.white.opacity(0.92))
-
-                Spacer()
-
-                Text(badgeText)
-                    .font(.system(size: 14, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(model.isKeepingAwake ? CyberColor.yellow : .secondary)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(
-                        RoundedRectangle(cornerRadius: 5, style: .continuous)
-                            .fill((model.isKeepingAwake ? CyberColor.yellow : Color.secondary).opacity(0.08))
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 5, style: .continuous)
-                            .stroke((model.isKeepingAwake ? CyberColor.yellow : Color.secondary).opacity(0.5), lineWidth: 1)
-                    )
-            }
-
-            HStack(spacing: 12) {
-                Image(systemName: "cup.and.saucer")
-                    .font(.system(size: 20, weight: .medium))
-                    .foregroundStyle(CyberColor.cyan)
-                    .frame(width: 24)
-
-                Text(model.isKeepingAwake ? "Keeping Mac awake" : "Watching agents")
-                    .font(.system(size: 18, weight: .medium, design: .monospaced))
-                    .foregroundStyle(CyberColor.cyan)
-            }
-        }
-        .padding(.vertical, 18)
+        .padding(.bottom, 16)
     }
 
     private var controls: some View {
@@ -139,7 +104,7 @@ struct StatusMenuView: View {
         .toggleStyle(CyberCheckboxStyle())
         .font(.system(size: 13, weight: .medium, design: .monospaced))
         .foregroundStyle(.white.opacity(0.82))
-        .padding(.vertical, 14)
+        .padding(.vertical, 16)
     }
 
     private var agents: some View {
