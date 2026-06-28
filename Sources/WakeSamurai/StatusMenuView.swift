@@ -39,10 +39,12 @@ struct StatusMenuView: View {
 
     private var header: some View {
         HStack(alignment: .center, spacing: 12) {
-            Image(systemName: model.statusSymbol)
-                .font(.system(size: 22, weight: .semibold))
-                .foregroundStyle(model.isKeepingAwake ? .yellow : .secondary)
-                .frame(width: 28)
+            Image(nsImage: AppIconAsset.image())
+                .resizable()
+                .interpolation(.high)
+                .frame(width: 40, height: 40)
+                .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+                .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(model.statusTitle)

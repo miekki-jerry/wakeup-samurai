@@ -64,7 +64,8 @@ private final class StatusBarController {
 
     private func updateStatusItem() {
         guard let button = statusItem.button else { return }
-        button.image = NSImage(systemSymbolName: model.statusSymbol, accessibilityDescription: model.statusTitle)
+        button.image = AppIconAsset.image(size: NSSize(width: 18, height: 18))
+        button.toolTip = model.statusTitle
         button.imagePosition = .imageOnly
     }
 }

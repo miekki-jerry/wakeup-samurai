@@ -23,6 +23,7 @@ mkdir -p "$MACOS_DIR" "$RESOURCES_DIR"
 cp ".build/arm64-apple-macosx/release/$BINARY_NAME" "$MACOS_DIR/$BINARY_NAME"
 cp "Info.plist" "$CONTENTS_DIR/Info.plist"
 cp "Resources/WakeSamurai.icns" "$RESOURCES_DIR/WakeSamurai.icns"
+cp "Resources/AppIconSource.png" "$RESOURCES_DIR/AppIconSource.png"
 
 codesign --force --deep --sign - "$APP_DIR"
 

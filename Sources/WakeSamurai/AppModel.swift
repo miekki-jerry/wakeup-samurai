@@ -35,10 +35,6 @@ final class AppModel: ObservableObject {
         }
     }
 
-    var statusSymbol: String {
-        isKeepingAwake ? "bolt.fill" : "moon"
-    }
-
     func start() {
         guard timer == nil else { return }
         refresh()
