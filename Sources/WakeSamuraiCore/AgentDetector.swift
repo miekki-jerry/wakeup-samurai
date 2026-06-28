@@ -1,4 +1,5 @@
 import Foundation
+import Darwin
 
 public protocol ProcessListing: Sendable {
     func processSnapshot() throws -> String
@@ -8,18 +9,54 @@ public struct ShellProcessListing: ProcessListing {
     public init() {}
 
     public func processSnapshot() throws -> String {
-        let process = Process()
-        let pipe = Pipe()
+        var fileDescriptors = [Int32](repeating: 0, count: 2)
+        guard pipe(&fileDescriptors) == 0 else {
+            return ""
+        }
 
-        process.executableURL = URL(fileURLWithPath: "/bin/ps")
-        process.arguments = ["-axo", "pid=,comm=,args="]
-        process.standardOutput = pipe
-        process.standardError = Pipe()
+        var actions: posix_spawn_file_actions_t?
+        posix_spawn_file_actions_init(&actions)
+        defer { posix_spawn_file_actions_destroy(&actions) }
 
-        try process.run()
-        process.waitUntilExit()
+        posix_spawn_file_actions_adddup2(&actions, fileDescriptors[1], STDOUT_FILENO)
+        posix_spawn_file_actions_addclose(&actions, fileDescriptors[0])
 
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        var processID = pid_t()
+        var arguments: [UnsafeMutablePointer<CChar>?] = [
+            strdup("/bin/ps"),
+            strdup("-axo"),
+            strdup("pid=,comm=,args="),
+            nil
+        ]
+        defer {
+            for argument in arguments where argument != nil {
+                free(argument)
+            }
+        }
+
+        let spawnResult = posix_spawn(&processID, "/bin/ps", &actions, nil, &arguments, nil)
+        close(fileDescriptors[1])
+
+        guard spawnResult == 0 else {
+            close(fileDescriptors[0])
+            return ""
+        }
+
+        var data = Data()
+        var buffer = [UInt8](repeating: 0, count: 4096)
+        while true {
+            let bytesRead = read(fileDescriptors[0], &buffer, buffer.count)
+            if bytesRead > 0 {
+                data.append(buffer, count: bytesRead)
+            } else {
+                break
+            }
+        }
+        close(fileDescriptors[0])
+
+        var status: Int32 = 0
+        waitpid(processID, &status, 0)
+
         return String(decoding: data, as: UTF8.self)
     }
 }
@@ -33,6 +70,9 @@ public struct AgentDetector: Sendable {
 
     public func detectedAgents() throws -> [DetectedAgent] {
         let snapshot = try processListing.processSnapshot()
-        return ProcessSnapshotParser.detectedAgents(from: snapshot)
+        let agents = ProcessSnapshotParser.detectedAgents(from: snapshot)
+        return AgentProvider.allCases.compactMap { provider in
+            agents.first { $0.provider == provider }
+        }
     }
 }

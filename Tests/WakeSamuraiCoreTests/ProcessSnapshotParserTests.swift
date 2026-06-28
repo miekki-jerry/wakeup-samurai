@@ -25,6 +25,17 @@ import Testing
     #expect(agents.first?.id == 201)
 }
 
+@Test func detectsCodexDesktopAppFromProcessArguments() {
+    let output = """
+      55508 /Applications/Co /Applications/Codex.app/Contents/MacOS/Codex
+      55875 /Applications/Co /Applications/Codex.app/Contents/Resources/codex app-server --analytics-default-enabled
+    """
+
+    let agents = ProcessSnapshotParser.detectedAgents(from: output, currentProcessID: 999)
+
+    #expect(agents.map { $0.provider } == [.codex, .codex])
+}
+
 @Test func ignoresCurrentProcessAndWakeSamuraiItself() {
     let output = """
       301 /tmp/WakeSamurai WakeSamurai

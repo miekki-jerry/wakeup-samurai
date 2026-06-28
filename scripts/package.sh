@@ -6,6 +6,7 @@ APP_NAME="Wake Samurai"
 BINARY_NAME="WakeSamurai"
 DIST_DIR="$ROOT_DIR/dist"
 APP_DIR="$DIST_DIR/$APP_NAME.app"
+DMG_ROOT="$DIST_DIR/dmg-root"
 CONTENTS_DIR="$APP_DIR/Contents"
 MACOS_DIR="$CONTENTS_DIR/MacOS"
 RESOURCES_DIR="$CONTENTS_DIR/Resources"
@@ -14,9 +15,7 @@ cd "$ROOT_DIR"
 
 swift build -c release --arch arm64
 
-if [[ ! -f "$ROOT_DIR/Resources/WakeSamurai.icns" ]]; then
-  "$ROOT_DIR/scripts/generate-icon.swift"
-fi
+"$ROOT_DIR/scripts/generate-icon.swift"
 
 rm -rf "$APP_DIR"
 mkdir -p "$MACOS_DIR" "$RESOURCES_DIR"
@@ -32,6 +31,10 @@ echo "Created $APP_DIR"
 if command -v hdiutil >/dev/null 2>&1; then
   DMG_PATH="$DIST_DIR/WakeSamurai.dmg"
   rm -f "$DMG_PATH"
-  hdiutil create -volname "Wake Samurai" -srcfolder "$APP_DIR" -ov -format UDZO "$DMG_PATH"
+  rm -rf "$DMG_ROOT"
+  mkdir -p "$DMG_ROOT"
+  cp -R "$APP_DIR" "$DMG_ROOT/$APP_NAME.app"
+  ln -s /Applications "$DMG_ROOT/Applications"
+  hdiutil create -volname "Wake Samurai" -srcfolder "$DMG_ROOT" -ov -format UDZO "$DMG_PATH"
   echo "Created $DMG_PATH"
 fi

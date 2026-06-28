@@ -2,6 +2,8 @@
 
 Wake Samurai is a small open-source macOS menu bar app that keeps your Mac awake while AI coding agents are working in the background.
 
+> Wake the f*ck up, Samurai. Your agent is still working.
+
 The first version watches for Codex and Claude processes. When one is detected, Wake Samurai creates a macOS idle-sleep assertion. When no supported agent is running, the assertion is released.
 
 ## Why
@@ -20,10 +22,30 @@ Long-running coding agents can stop when macOS goes to sleep. Wake Samurai gives
 ## Requirements
 
 - macOS 13 or newer
-- Apple Silicon Mac for the packaged build script
+- Apple Silicon Mac for local release builds
 - Xcode command line tools for development builds
 
-## Install From Source
+## Install
+
+Download `WakeSamurai.dmg` from the latest [GitHub Release](https://github.com/miekki-jerry/wake-samurai/releases/latest).
+
+Do not use `Code -> Download ZIP` if you want to install the app. That ZIP is only the source code.
+
+1. Open `WakeSamurai.dmg`.
+2. Drag `Wake Samurai.app` into `Applications`.
+3. Open Wake Samurai from `Applications`.
+
+Current public builds are ad hoc signed because the project does not have a Developer ID certificate yet. On first launch, macOS may show:
+
+```text
+Apple could not verify “Wake Samurai” is free of malware.
+```
+
+For now, open `System Settings -> Privacy & Security` and click `Open Anyway`. This is a temporary distribution limitation, not a privacy permission requirement. Wake Samurai does not need Accessibility, Full Disk Access, Screen Recording, or network permissions.
+
+After a Developer ID certificate is available, releases should be signed and notarized so this extra step goes away.
+
+## Build From Source
 
 ```bash
 git clone https://github.com/miekki-jerry/wake-samurai.git
@@ -37,8 +59,6 @@ For a distributable file:
 ```bash
 open dist/WakeSamurai.dmg
 ```
-
-Because this is not distributed through the App Store yet, macOS may ask you to confirm that you want to open it.
 
 ## Development
 
