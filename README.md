@@ -41,7 +41,14 @@ Current public builds are ad hoc signed because the project does not have a Deve
 Apple could not verify “Wake Samurai” is free of malware.
 ```
 
-For now, open `System Settings -> Privacy & Security` and click `Open Anyway`. This is a temporary distribution limitation, not a privacy permission requirement. Wake Samurai does not need Accessibility, Full Disk Access, Screen Recording, or network permissions.
+For now:
+
+1. Click `Done` in the warning dialog. Do not click `Move to Trash`.
+2. Open `System Settings -> Privacy & Security`.
+3. In the `Security` section, click `Open Anyway` for Wake Samurai.
+4. Confirm the second launch prompt.
+
+This is a temporary distribution limitation, not a privacy permission requirement. Wake Samurai does not need Accessibility, Full Disk Access, Screen Recording, or network permissions.
 
 After a Developer ID certificate is available, releases should be signed and notarized so this extra step goes away.
 
