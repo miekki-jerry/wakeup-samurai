@@ -35,7 +35,7 @@ private final class StatusBarController {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         popover = NSPopover()
         popover.behavior = .transient
-        popover.contentSize = NSSize(width: 340, height: 320)
+        popover.contentSize = NSSize(width: 430, height: 320)
         popover.contentViewController = NSHostingController(rootView: StatusMenuView(model: model))
 
         statusItem.button?.target = self
@@ -64,7 +64,7 @@ private final class StatusBarController {
 
     private func updateStatusItem() {
         guard let button = statusItem.button else { return }
-        button.image = AppIconAsset.image(size: NSSize(width: 18, height: 18))
+        button.image = AppIconAsset.statusBarImage()
         button.toolTip = model.statusTitle
         button.imagePosition = .imageOnly
     }
