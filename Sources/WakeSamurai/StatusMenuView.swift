@@ -52,22 +52,20 @@ struct StatusMenuView: View {
 
     private var statusRow: some View {
         HStack(spacing: 12) {
-            Circle()
-                .fill(model.detectedAgents.isEmpty ? Color.secondary.opacity(0.45) : CyberColor.yellow.opacity(0.65))
-                .frame(width: 10, height: 10)
+            PulsingStatusDot(isActive: model.isKeepingAwake)
 
             Text(statusText)
-                .font(.system(size: 19, weight: .semibold, design: .monospaced))
+                .font(.system(size: 17, weight: .semibold, design: .monospaced))
                 .foregroundStyle(.white.opacity(0.92))
                 .lineLimit(1)
 
             Spacer()
 
             Text(badgeText)
-                .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                .font(.system(size: 13, weight: .semibold, design: .monospaced))
                 .foregroundStyle(model.isKeepingAwake ? CyberColor.yellow : .secondary)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
+                .padding(.horizontal, 9)
+                .padding(.vertical, 5)
                 .background(
                     RoundedRectangle(cornerRadius: 5, style: .continuous)
                         .fill((model.isKeepingAwake ? CyberColor.yellow : Color.secondary).opacity(0.08))
@@ -130,6 +128,37 @@ private enum CyberColor {
     static let yellow = Color(red: 1.0, green: 0.88, blue: 0.0)
 }
 
+private struct PulsingStatusDot: View {
+    let isActive: Bool
+    @State private var isPulsing = false
+
+    var body: some View {
+        ZStack {
+            if isActive {
+                Circle()
+                    .stroke(CyberColor.yellow.opacity(isPulsing ? 0 : 0.35), lineWidth: 1)
+                    .frame(width: 18, height: 18)
+                    .scaleEffect(isPulsing ? 1 : 0.45)
+            }
+
+            Circle()
+                .fill(isActive ? CyberColor.yellow : Color.secondary.opacity(0.45))
+                .frame(width: 8, height: 8)
+        }
+        .frame(width: 18, height: 18)
+        .onAppear {
+            isPulsing = isActive
+        }
+        .onChange(of: isActive) { newValue in
+            isPulsing = newValue
+        }
+        .animation(
+            isActive ? .easeOut(duration: 1.25).repeatForever(autoreverses: false) : .default,
+            value: isPulsing
+        )
+    }
+}
+
 private struct CyberCheckboxStyle: ToggleStyle {
     func makeBody(configuration: Configuration) -> some View {
         Button {
@@ -166,14 +195,14 @@ private struct AgentChip: View {
         HStack(spacing: 8) {
             Circle()
                 .fill(isActive ? CyberColor.yellow : Color.white.opacity(0.25))
-                .frame(width: 8, height: 8)
+                .frame(width: 6, height: 6)
 
             Text(title)
-                .font(.system(size: 15, weight: .medium, design: .monospaced))
+                .font(.system(size: 13, weight: .medium, design: .monospaced))
         }
         .foregroundStyle(isActive ? CyberColor.yellow : Color.white.opacity(0.5))
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
         .background(
             RoundedRectangle(cornerRadius: 7, style: .continuous)
                 .fill(isActive ? CyberColor.yellow.opacity(0.08) : Color.white.opacity(0.06))
