@@ -9,21 +9,12 @@ struct StatusMenuView: View {
         providers(from: model.codingAgents)
     }
 
-    private var statusText: String {
+    private var statusLines: [String] {
         if codingProviders.isEmpty {
-            return "No agent coding"
+            return ["No agent coding"]
         }
 
-        if codingProviders.count == 1, let provider = codingProviders.first {
-            return "\(provider.displayName) is coding"
-        }
-
-        let providerNames = codingProviders.map(\.displayName)
-        if providerNames.count == 2 {
-            return "\(providerNames[0]) + \(providerNames[1]) coding"
-        }
-
-        return "\(providerNames[0]) + \(providerNames.count - 1) coding"
+        return codingProviders.map { "\($0.displayName) is coding" }
     }
 
     private var detectedProviders: [AgentProvider] {
@@ -48,11 +39,11 @@ struct StatusMenuView: View {
             Divider().overlay(Color.white.opacity(0.08))
             controls
             Divider().overlay(Color.white.opacity(0.08))
-            agentSections
+            agents
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 16)
-        .frame(width: 430, height: 330)
+        .frame(width: 390, height: 270)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(Color(red: 0.04, green: 0.045, blue: 0.045).opacity(0.98))
@@ -67,10 +58,14 @@ struct StatusMenuView: View {
         HStack(spacing: 12) {
             PulsingStatusDot(isActive: model.isKeepingAwake)
 
-            Text(statusText)
-                .font(.system(size: 17, weight: .semibold, design: .monospaced))
-                .foregroundStyle(.white.opacity(0.92))
-                .lineLimit(1)
+            VStack(alignment: .leading, spacing: 4) {
+                ForEach(statusLines, id: \.self) { line in
+                    Text(line)
+                        .font(.system(size: 17, weight: .semibold, design: .monospaced))
+                        .foregroundStyle(.white.opacity(0.92))
+                        .lineLimit(1)
+                }
+            }
 
             Spacer()
 
@@ -100,46 +95,28 @@ struct StatusMenuView: View {
         .padding(.vertical, 16)
     }
 
-    private var agentSections: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            providerSection(
-                title: "CODING AGENTS",
-                emptyTitle: "No agents coding",
-                providers: codingProviders,
-                isCoding: true
-            )
-
-            providerSection(
-                title: "DETECTED AGENTS",
-                emptyTitle: "No active agents",
-                providers: detectedProviders,
-                isCoding: false
-            )
-        }
-        .padding(.top, 16)
-    }
-
-    private func providerSection(title: String, emptyTitle: String, providers: [AgentProvider], isCoding: Bool) -> some View {
+    private var agents: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(title)
+            Text("DETECTED AGENTS")
                 .font(.system(size: 12, weight: .semibold, design: .monospaced))
                 .tracking(4)
                 .foregroundStyle(.white.opacity(0.45))
 
-            if providers.isEmpty {
-                Text(emptyTitle)
+            if detectedProviders.isEmpty {
+                Text("No active agents")
                     .font(.system(size: 13, weight: .medium, design: .monospaced))
                     .foregroundStyle(.white.opacity(0.5))
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 10) {
-                        ForEach(providers, id: \.self) { provider in
-                            AgentChip(title: chipTitle(for: provider), isCoding: isCoding)
+                        ForEach(detectedProviders, id: \.self) { provider in
+                            AgentChip(title: chipTitle(for: provider))
                         }
                     }
                 }
             }
         }
+        .padding(.top, 16)
     }
 
     private func chipTitle(for provider: AgentProvider) -> String {
@@ -213,7 +190,6 @@ private struct CyberCheckboxStyle: ToggleStyle {
 
 private struct AgentChip: View {
     let title: String
-    let isCoding: Bool
 
     var body: some View {
         HStack(spacing: 8) {
@@ -229,11 +205,11 @@ private struct AgentChip: View {
         .padding(.vertical, 6)
         .background(
             RoundedRectangle(cornerRadius: 7, style: .continuous)
-                .fill(CyberColor.yellow.opacity(isCoding ? 0.16 : 0.08))
+                .fill(CyberColor.yellow.opacity(0.08))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 7, style: .continuous)
-                .stroke(CyberColor.yellow.opacity(isCoding ? 0.8 : 0.55), lineWidth: 1)
+                .stroke(CyberColor.yellow.opacity(0.55), lineWidth: 1)
         )
     }
 }
