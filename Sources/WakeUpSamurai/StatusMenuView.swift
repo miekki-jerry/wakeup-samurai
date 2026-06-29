@@ -55,31 +55,38 @@ struct StatusMenuView: View {
     }
 
     private var statusRow: some View {
-        HStack(spacing: 12) {
-            PulsingStatusDot(isActive: model.isKeepingAwake)
-
-            VStack(alignment: .leading, spacing: 4) {
-                ForEach(statusLines, id: \.self) { line in
-                    Text(line)
-                        .font(.system(size: 17, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(.white.opacity(0.92))
-                        .lineLimit(1)
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .top, spacing: 12) {
+                VStack(spacing: 11) {
+                    ForEach(statusLines, id: \.self) { _ in
+                        PulsingStatusDot(isActive: model.isKeepingAwake)
+                    }
                 }
-            }
+                .padding(.top, 4)
 
-            Spacer()
+                VStack(alignment: .leading, spacing: 4) {
+                    ForEach(statusLines, id: \.self) { line in
+                        Text(line)
+                            .font(.system(size: 17, weight: .semibold, design: .monospaced))
+                            .foregroundStyle(.white.opacity(0.92))
+                            .lineLimit(1)
+                    }
+                }
 
-            Button {
-                NSApplication.shared.terminate(nil)
-            } label: {
-                Image(systemName: "power")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(model.isKeepingAwake ? CyberColor.yellow : .secondary)
-                    .frame(width: 24, height: 24)
+                Spacer()
+
+                Button {
+                    NSApplication.shared.terminate(nil)
+                } label: {
+                    Image(systemName: "power")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(model.isKeepingAwake ? CyberColor.yellow : .secondary)
+                        .frame(width: 24, height: 24)
+                }
+                .buttonStyle(.plain)
+                .help("Quit WakeUp Samurai")
+                .keyboardShortcut("q")
             }
-            .buttonStyle(.plain)
-            .help("Quit WakeUp Samurai")
-            .keyboardShortcut("q")
         }
         .padding(.bottom, 16)
     }

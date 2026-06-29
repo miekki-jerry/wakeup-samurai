@@ -132,6 +132,19 @@ private struct StubProcessListing: ProcessListing {
     #expect(agents.allSatisfy { !$0.isCoding })
 }
 
+@Test func detectsBusyCursorDesktopHelpersWithoutCoding() {
+    let output = """
+      446 1.4 /Applications/Cu /Applications/Cursor.app/Contents/Frameworks/Cursor Helper (Renderer).app/Contents/MacOS/Cursor Helper (Renderer) --type=renderer --user-data-dir=/Users/piter/Library/Application Support/Cursor
+      447 1.0 Cursor Helper (P Cursor Helper (Plugin): extension-host (user) yuni [2-6]
+      448 0.7 Cursor Helper (P Cursor Helper (Plugin): extension-host (agent-exec) yuni [2-8]
+    """
+
+    let agents = ProcessSnapshotParser.detectedAgents(from: output, currentProcessID: 999)
+
+    #expect(agents.map { $0.provider } == [.cursor, .cursor, .cursor])
+    #expect(agents.allSatisfy { !$0.isCoding })
+}
+
 @Test func ignoresSystemCursorUIViewService() {
     let output = """
       445 0.0 /System/Library/ /System/Library/PrivateFrameworks/TextInputUIMacHelper.framework/Versions/A/XPCServices/CursorUIViewService.xpc/Contents/MacOS/CursorUIViewService
