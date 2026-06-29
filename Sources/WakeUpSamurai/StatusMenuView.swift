@@ -42,8 +42,8 @@ struct StatusMenuView: View {
             agents
         }
         .padding(.horizontal, 18)
-        .padding(.vertical, 16)
-        .frame(width: 390, height: 270)
+        .padding(.vertical, 12)
+        .frame(width: 390, height: 230)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(Color(red: 0.04, green: 0.045, blue: 0.045).opacity(0.98))
@@ -83,7 +83,7 @@ struct StatusMenuView: View {
             .help("Quit WakeUp Samurai")
             .keyboardShortcut("q")
         }
-        .padding(.bottom, 16)
+        .padding(.bottom, 12)
     }
 
     private var controls: some View {
@@ -94,7 +94,7 @@ struct StatusMenuView: View {
         .toggleStyle(CyberCheckboxStyle())
         .font(.system(size: 13, weight: .medium, design: .monospaced))
         .foregroundStyle(.white.opacity(0.82))
-        .padding(.vertical, 16)
+        .padding(.vertical, 12)
     }
 
     private var agents: some View {
@@ -118,7 +118,7 @@ struct StatusMenuView: View {
                 }
             }
         }
-        .padding(.top, 16)
+        .padding(.top, 12)
     }
 
     private func chipTitle(for provider: AgentProvider) -> String {
