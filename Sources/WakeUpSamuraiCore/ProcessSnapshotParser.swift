@@ -17,8 +17,14 @@ public enum ProcessSnapshotParser {
             return nil
         }
 
-        let command = String(parts[1])
-        let arguments = parts.count == 3 ? String(parts[2]) : ""
+        let processFields = parseProcessFields(parts: parts)
+        let command = processFields.command
+        let arguments = processFields.arguments
+        let cpuUsage = processFields.cpuUsage
+        guard !isIgnoredProcess(command: command, arguments: arguments) else {
+            return nil
+        }
+
         guard let provider = matchedProvider(command: command, arguments: arguments) else {
             return nil
         }
@@ -28,7 +34,30 @@ public enum ProcessSnapshotParser {
             provider: provider,
             command: lastPathComponent(command),
             arguments: arguments,
-            isCoding: isCodingProcess(command: command, arguments: arguments)
+            isCoding: isCodingProcess(provider: provider, command: command, arguments: arguments, cpuUsage: cpuUsage),
+            cpuUsage: cpuUsage
+        )
+    }
+
+    private static func parseProcessFields(parts: [Substring]) -> (cpuUsage: Double, command: String, arguments: String) {
+        if parts.count == 3 {
+            let second = String(parts[1])
+            let remainder = String(parts[2])
+            let remainderParts = remainder.split(separator: " ", maxSplits: 1, omittingEmptySubsequences: true)
+
+            if let cpuUsage = Double(second), let command = remainderParts.first {
+                return (
+                    cpuUsage: cpuUsage,
+                    command: String(command),
+                    arguments: remainderParts.count == 2 ? String(remainderParts[1]) : ""
+                )
+            }
+        }
+
+        return (
+            cpuUsage: 0,
+            command: String(parts[1]),
+            arguments: parts.count == 3 ? String(parts[2]) : ""
         )
     }
 
@@ -144,8 +173,12 @@ public enum ProcessSnapshotParser {
         return tokens[0]
     }
 
-    private static func isCodingProcess(command: String, arguments: String) -> Bool {
-        !isDesktopRuntimeProcess(command: command, arguments: arguments)
+    private static func isCodingProcess(provider: AgentProvider, command: String, arguments: String, cpuUsage: Double) -> Bool {
+        if isDesktopRuntimeProcess(command: command, arguments: arguments) {
+            return provider == .codex && cpuUsage >= 1
+        }
+
+        return true
     }
 
     private static func isDesktopRuntimeProcess(command: String, arguments: String) -> Bool {
@@ -153,6 +186,11 @@ public enum ProcessSnapshotParser {
         return searchable.contains(".app/contents/")
             || searchable.contains("cursor helper")
             || searchable.contains(" app-server")
+    }
+
+    private static func isIgnoredProcess(command: String, arguments: String) -> Bool {
+        let searchable = "\(command) \(arguments)".lowercased()
+        return searchable.contains("cursoruiviewservice")
     }
 
     private static func containsMatchTerm(_ searchable: String, term: String) -> Bool {

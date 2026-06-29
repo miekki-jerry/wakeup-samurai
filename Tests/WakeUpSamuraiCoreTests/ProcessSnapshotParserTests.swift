@@ -46,6 +46,19 @@ private struct StubProcessListing: ProcessListing {
     #expect(agents.allSatisfy { !$0.isCoding })
 }
 
+@Test func detectsActiveCodexDesktopAppFromCpuUsage() {
+    let output = """
+      55508 0.0 /Applications/Co /Applications/Codex.app/Contents/MacOS/Codex
+      55875 8.5 /Applications/Co /Applications/Codex.app/Contents/Resources/codex app-server --analytics-default-enabled
+    """
+
+    let agents = ProcessSnapshotParser.detectedAgents(from: output, currentProcessID: 999)
+
+    #expect(agents.map { $0.provider } == [.codex, .codex])
+    #expect(agents.map { $0.isCoding } == [false, true])
+    #expect(agents.last?.cpuUsage == 8.5)
+}
+
 @Test func ignoresCurrentProcessAndWakeUpSamuraiItself() {
     let output = """
       301 /tmp/WakeUpSamurai WakeUpSamurai
@@ -117,6 +130,16 @@ private struct StubProcessListing: ProcessListing {
 
     #expect(agents.map { $0.provider } == [.cursor, .cursor, .cursor, .cursor])
     #expect(agents.allSatisfy { !$0.isCoding })
+}
+
+@Test func ignoresSystemCursorUIViewService() {
+    let output = """
+      445 0.0 /System/Library/ /System/Library/PrivateFrameworks/TextInputUIMacHelper.framework/Versions/A/XPCServices/CursorUIViewService.xpc/Contents/MacOS/CursorUIViewService
+    """
+
+    let agents = ProcessSnapshotParser.detectedAgents(from: output, currentProcessID: 999)
+
+    #expect(agents.isEmpty)
 }
 
 @Test func detectsCodexAppServerWithoutCoding() {

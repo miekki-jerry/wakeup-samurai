@@ -25,7 +25,7 @@ public struct ShellProcessListing: ProcessListing {
         var arguments: [UnsafeMutablePointer<CChar>?] = [
             strdup("/bin/ps"),
             strdup("-axo"),
-            strdup("pid=,comm=,args="),
+            strdup("pid=,pcpu=,comm=,args="),
             nil
         ]
         defer {
